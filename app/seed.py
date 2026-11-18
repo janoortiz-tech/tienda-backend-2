@@ -1,20 +1,24 @@
 import os
-from app.db.database import SessionLocal
+from app.db.database import SessionLocal, engine, Base
+import app.models
 from app.models import Usuario, Producto
-from app.core.security import get_password_hash
+from app.core.security import hash_password
 
 def run_seed():
+    # Crea las tablas en Neon si todavía no existen
+    Base.metadata.create_all(bind=engine)
+
     db = SessionLocal()
     try:
         admin_email = os.getenv("SEED_ADMIN_EMAIL", "admin@equipo.com")
-        admin_pass = os.getenv("SEED_ADMIN_PASSWORD", "AdminClave123!")
+        admin_pass = os.getenv("SEED_ADMIN_PASSWORD", "AdminClaveSegura123!")
 
         admin = db.query(Usuario).filter(Usuario.email == admin_email).first()
         if not admin:
             db.add(Usuario(
                 nombre="Administrador",
                 email=admin_email,
-                hashed_password=get_password_hash(admin_pass),
+                hashed_password=hash_password(admin_pass),
                 rol="admin",
                 acepto_tratamiento=True,
             ))
